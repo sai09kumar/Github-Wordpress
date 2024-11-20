@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  apache-server:
+    image: httpd:latest
+    container_name: apache-server
+    ports:
+      - "8080:80" # Apache accessible at localhost:8080
+    volumes:
+      - ./website:/usr/local/apache2/htdocs/ # Mount your website directory
+    depends_on:
+      - mysql-db # Ensure MySQL is up before Apache starts
+
+  mysql-db:
+    image: mysql:5.7
+    container_name: mysql-db
+    ports:
+      - "3306:3306" # MySQL accessible at localhost:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: saidb
+    volumes:
+      - ./data:/var/lib/mysql # Persistent MySQL data
+      - ./saidb.sql:/docker-entrypoint-initdb.d/saidb.sql # Auto-import the SQL dump
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    ports:
+      - "8081:80" # phpMyAdmin accessible at localhost:8081
+    environment:
+      PMA_HOST: mysql-db
+      PMA_PORT: 3306
+    depends_on:
+      - mysql-db
